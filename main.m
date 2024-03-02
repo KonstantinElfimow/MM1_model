@@ -1,5 +1,5 @@
 clear all;
-T = 8; % Часы моделирования
+T = 4; % Часы моделирования
 
 nf = 2; % количество факторов в плане эксперимента
 minf = [4 0.3]; % минимальное значение факторов a и b
@@ -25,59 +25,89 @@ for i = 1:nf
     end
 end
 
-p0 = zeros(1, N); % относительная пропускная способность
-A = zeros(1, N); % абсолютная пропускная способность
-p_refuse = zeros(1, N); % вероятность отказа обслуживания
+p0_all = zeros(1, N); % относительная пропускная способность
+A_all = zeros(1, N); % абсолютная пропускная способность
+p_refuse_all = zeros(1, N); % вероятность отказа обслуживания
 
 % Сколько телефонов должно быть в агентстве, чтобы относительная 
 % пропускная способность была не менее 0,75
-n = zeros(1, N);
+n_all = zeros(1, N);
 
-for i= 1:N
+% Тактическое планирование
+alpha = 0.1;
+d = 0.2;
+NE_in_N = zeros(1, N);
+for i=1:N
     % Интенсивность в этот час
     lambda = fraceks(i, 1);
+    % время обработки звонка
     t = fraceks(i, 2);
-    % Моделирование
-    s = sim('trenl', 60*T);
-    % интенсивность входящего потока, заявок в минуту
-    average_calls_per_minute = s.calls / 60;
-    % интенсивность потока обслуживания, заявок за минуту
-    average_servs_per_minute = 1 / s.average_serv_time;
-    % Относительная пропускная способность (телефонная линия свободна, заявок нет)
-    p0(i) = average_servs_per_minute / (average_servs_per_minute + average_calls_per_minute);
-    % Абсолютная пропускная способность (заявок, обслуживаемых в минуту)
-    A(i) = p0(i) * average_calls_per_minute;
-    % вероятность отказа (занятости телефона)
-    p_refuse(i) = 1 - p0(i);
-    % Сколько телефонов должно быть в агентстве, чтобы относительная 
-    % пропускная способность была не менее 0,75
-   
-    % приведенная интенсивность входящего потока
-    ro = average_calls_per_minute / average_servs_per_minute;
-    % cdf
-    cdf = 0;
-    % количество обслуживающих телефонов
-    k = 0;
-    while(0.75 > cdf)
-        k = k + 1;
-        p = 0;
-        for j=0:k
-            p = p + ((ro ^ j) / factorial(j));
+
+    p0 = []; % относительная пропускная способность
+    A = []; % абсолютная пропускная способность
+    p_refuse = []; % вероятность отказа обслуживания
+    n = [];
+    
+    NE = 0;
+    average_time = [];
+    while(1)
+        NE = NE + 1;
+        % Моделирование
+        s = sim('trenl', 60*T);
+        % интенсивность входящего потока, заявок в минуту
+        average_calls_per_minute = s.calls / 60;
+        % интенсивность потока обслуживания, заявок за минуту
+        average_servs_per_minute = 1 / s.average_serv_time(end);
+        average_time = [average_time, s.average_serv_time];
+        % Относительная пропускная способность (телефонная линия свободна, заявок нет)
+        p0(NE) = average_servs_per_minute / (average_servs_per_minute + average_calls_per_minute);
+        % Абсолютная пропускная способность (заявок, обслуживаемых в минуту)
+        A(NE) = p0(NE) * average_calls_per_minute;
+        % вероятность отказа (занятости телефона)
+        p_refuse(NE) = 1 - p0(NE);
+        % Сколько телефонов должно быть в агентстве, чтобы относительная 
+        % пропускная способность была не менее 0,75
+       
+        % приведенная интенсивность входящего потока
+        ro = average_calls_per_minute / average_servs_per_minute;
+        % cdf
+        cdf = 0;
+        % количество обслуживающих телефонов
+        k = 0;
+        while(0.75 > cdf)
+            k = k + 1;
+            p = 0;
+            for m=0:k
+                p = p + ((ro ^ m) / factorial(m));
+            end
+            p = 1 / p;
+            % Вероятность отказа k-го телефона
+            p_k = p * ((ro ^ k) / factorial(k));
+            % пропускная способность системы с k-количестом телефонов
+            cdf = 1 - p_k;
         end
-        p = 1 / p;
-        % Вероятность отказа k-го телефона
-        p_k = p * ((ro ^ k) / factorial(k));
-        % пропускная способность системы с k-количестом телефонов
-        cdf = 1 - p_k;
+        n(NE) = k;
+        
+        if NE == 1
+            continue;
+        end
+        D = (1 / (NE - 1)) * sum((average_time - mean(average_time)).^2);
+        if NE >= ceil(D / (alpha * (d ^ 2)))
+            break;
+        end
     end
-    n(i) = k;
+    p0_all(i) = mean(p0);
+    A_all(i) = mean(A); 
+    p_refuse_all(i) = mean(p_refuse);
+    n_all(i) = mean(n);
+    NE_in_N(i) = NE;
 end
 
 % Регрессионный анализ
 
 % Определение коэффициентов регрессии
 Cl = X * X';
-b_l = inv(Cl) * X * p0';
+b_l = inv(Cl) * X * p0_all';
 
 % Формирование зависимости реакции системы на множестве реальных значений факторов
 Al = minf(1):0.1:maxf(1);
@@ -123,6 +153,6 @@ zlim([0 1]);
 title('Теоретическая модель');
 grid on;
 
-clear Al anl ans Bl bnl Cl fictfact fracplan i j lambda unused N N1 N2 nf t X ...
-    k p p_k cdf ro current_lambda i j average_calls_per_minute ...
-    average_servs_per_minute;
+clear Al anl ans Bl bnl Cl fictfact fracplan i j unused N N1 N2 nf X ...
+    k p p_k cdf ro i j average_calls_per_minute ...
+    average_servs_per_minute p0 n p_refuse A m NE average_time;
