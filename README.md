@@ -5,3 +5,9 @@
 ## Блок-схема алгоритма выполнения задания представлена
 ![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/811514f8-178d-4b69-a8d7-ca6e075fedf4)
 ## Результаты
+### Модель, отображающая одноканальную СМО с отказами
+![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/f07d8ace-fbd2-454b-8ec7-ded572162d0a)
+### Сравнение эксперимента и теоретической модели
+![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/88739673-1e44-4fa4-9e7a-c4d3b46f7f8a)
+### Выходные данные
+Представлены в виде .fig и .mat.
