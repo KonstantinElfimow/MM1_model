@@ -7,9 +7,9 @@ Matlab R2023a
 ![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/811514f8-178d-4b69-a8d7-ca6e075fedf4)
 ## Результаты
 ### Модель, отображающая одноканальную СМО с отказами
-![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/f07d8ace-fbd2-454b-8ec7-ded572162d0a)
+![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/5f4e7371-96e4-45fc-ad2d-104aabb7b425)
 ### Сравнение эксперимента и теоретической модели
-![image](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/c75eb7be-bd09-4ab0-a74e-5064555d585d)
+![untitled](https://github.com/KonstantinElfimow/MM1_model/assets/70435514/1310a199-fd5d-455f-acb7-aab92f01fac8)
 ### Выходные данные
 Представлены в виде .fig и .mat.
 ## Выводы
