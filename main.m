@@ -55,14 +55,14 @@ for i=1:N
         % Моделирование
         s = sim('trenl', 60*T);
         % интенсивность входящего потока, заявок в минуту
-        average_calls_per_minute = s.calls / 60;
+        average_calls_per_minute = s.calls / (T * 60);
         % интенсивность потока обслуживания, заявок за минуту
         average_servs_per_minute = 1 / s.average_serv_time(end);
         average_time = [average_time, s.average_serv_time];
         % Относительная пропускная способность (телефонная линия свободна, заявок нет)
         p0(NE) = average_servs_per_minute / (average_servs_per_minute + average_calls_per_minute);
         % Абсолютная пропускная способность (заявок, обслуживаемых в минуту)
-        A(NE) = p0(NE) * average_calls_per_minute;
+        A(NE) = s.servs / (T * 60);
         % вероятность отказа (занятости телефона)
         p_refuse(NE) = 1 - p0(NE);
         % Сколько телефонов должно быть в агентстве, чтобы относительная 
